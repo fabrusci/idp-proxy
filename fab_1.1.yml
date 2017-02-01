@@ -1,0 +1,64 @@
+version: '2.0'
+networks:
+  front:
+    driver: bridge
+    ipam:
+      config:
+      - aux_addresses:
+          host1: 10.10.10.100
+          host2: 10.10.10.101
+          host3: 10.10.10.102
+        gateway: 10.10.10.1
+        ip_range: 10.10.10.0/24
+        subnet: 10.10.10.0/24
+      driver: default
+services:
+  mysql:
+    container_name: db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    image: mysql:5.7
+    networks:
+      front:
+       ipv4_address: 10.10.10.50
+       aliases:
+       - db
+    ports:
+    - 13307:3306
+    volumes:
+    - /root/spring-tsers-auth/docker-data/mysql:/docker-entrypoint-initdb.d:rw
+  openldap:
+    environment:
+      LDAP_ADMIN_PASSWORD: admin
+      LDAP_DOMAIN: tsers.org
+      LDAP_ORGANISATION: tsers organization
+    image: osixia/openldap
+    container_name: openldap
+    networks:
+      front:
+    ports:
+    - 1636:636
+    - 1389:389
+  openldap-remote:
+    environment:
+      LDAP_ADMIN_PASSWORD: admin
+      LDAP_DOMAIN: remote.tsers.org
+      LDAP_ORGANISATION: tsers remote organization
+    image: osixia/openldap
+    container_name: openladap-remote
+    networks:
+      front:
+    ports:
+    - 2389:389
+  openldap-seed:
+    entrypoint: /ldif_files/importData.sh
+    image: osixia/openldap
+    links:
+    - openldap
+    networks:
+     front:
+    volumes:
+    - /root/spring-tsers-auth/docker-data/openldap-seed:/ldif_files:rw
+volumes: {}
+

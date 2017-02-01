@@ -1,0 +1,11 @@
+version: '2'
+services:
+  openldap:
+    image: osixia/openldap
+    ports:
+    - "1636:636"
+    - "389:389"
+    environment:
+      LDAP_ORGANISATION: "tsers organization"
+      LDAP_DOMAIN: "tsers.org"
+      LDAP_ADMIN_PASSWORD: "admin"

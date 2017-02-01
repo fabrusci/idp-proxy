@@ -1,0 +1,90 @@
+version: '2.0'
+networks:
+  net1:
+    driver: bridge
+    ipam:
+      config:
+      - aux_addresses:
+          host1: 10.10.10.100
+          host2: 10.10.10.101
+          host3: 10.10.10.102
+        gateway: 10.10.10.1
+        ip_range: 10.10.10.0/24
+        subnet: 10.10.10.0/24
+      driver: default
+
+services:
+  openldap:
+    environment:
+      LDAP_ADMIN_PASSWORD: admin
+      LDAP_DOMAIN: sparkle.com
+      LDAP_ORGANISATION: TI Sparkle
+    image: osixia/openldap
+    container_name: ldap
+    networks:
+     net1:
+      ipv4_address: 10.10.10.40
+      aliases:
+       - ldap
+    ports:
+     - 1636:636
+     - 1389:389
+    volumes:
+     - data:/var/lib/ldap
+     - conf:/etc/ldap/slapd.d
+
+  wso2is:
+    environment:
+       DEBUG: 5005
+      # LDAP_DOMAIN: remote.tsers.org
+      # LDAP_ORGANISATION: tsers remote organization
+    image: wso2is:5.3.0
+    container_name: wso2is
+    #entrypoint:
+    #  - /usr/local/bin/init.sh
+    #  - "-debug"
+    #  - "5005"
+
+    hostname: am.wso2.helab.nuvolaitaliana.it
+    links:
+      - openldap
+    networks:
+     net1:
+      ipv4_address: 10.10.10.50
+      aliases:
+       - wso2is
+    ports:
+     - 9443:9443
+     - 9763:9763
+     - 8000:8000
+     - 10500:10500
+     - 10389:10389
+     - 5005:5005
+    volumes:
+     - wso2conf:/mnt/wso2is-5.3.0/repository
+     #- wso2conf-new:/mnt/wso2is-5.3.0/repository
+
+  # openldap-seed
+    # entrypoint: /ldif_files/importData.sh
+    # image: osixia/openldap
+    # links:
+    # - openldap
+    # networks:
+     # front:
+    # volumes:
+    # - /root/spring-tsers-auth/docker-data/openldap-seed:/ldif_files:rw
+volumes:
+ data:
+    external:
+      name: ldapdb
+ conf:
+    external:
+     name: ldapconf
+ wso2conf:
+    external:
+     name: wso2conf
+ wso2conf-new:
+    external:
+     name: wso2conf-new
+
+
