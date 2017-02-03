@@ -36,8 +36,6 @@ services:
   wso2is:
     #environment:
       # DEBUG: 5005
-      # LDAP_DOMAIN: remote.tsers.org
-      # LDAP_ORGANISATION: tsers remote organization
     image: wso2is:5.3.0
     container_name: wso2is
     #entrypoint:
